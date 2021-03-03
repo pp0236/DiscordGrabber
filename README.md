@@ -32,3 +32,7 @@ You may do with this code whatever you want, I would appreciate suggestions or i
 
 ## Disclaimer
 I am in no way responsible for what you do using my program/code.
+
+## Example
+
+![Example output](https://raw.githubusercontent.com/Xefer-0/DiscordGrabber/master/ss.png)
