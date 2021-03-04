@@ -18,7 +18,6 @@ Current features include:
 - Copies itself into %APPDATA% every time it runs (under a random UUID)
 
 ## WIP
-- Send normal webhook messages (not embed)
 - Check whether or not discord account has nitro
 - Check the billing information (if nitro is present)
 
