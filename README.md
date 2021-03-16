@@ -1,12 +1,12 @@
 # Discord Grabber v2
 
-!!! Only works on windows
-
 Discord Grabber v2 is the second version of a discord token logger, improvements from the previous version are:
 
 - Checks whether or not the token is valid
 - Provides information regarding the account
 - Has a minimum amount of persistence (namely moving itself to %APPDATA% and placing itself in the Run directory of the registry
+- Has embed and raw text
+- Checks for tokens in multiple locations
 
 ## Features
 Current features include:
@@ -16,6 +16,7 @@ Current features include:
 - Checks whether the token(s) is valid before sending it to avoid disabled tokens flooding the webhook
 - Persists in registry (Run, RunOnce, RunServices, RunServicesOnce)
 - Copies itself into %APPDATA% every time it runs (under a random UUID)
+- No need for dependencies
 
 ## WIP
 - Check whether or not discord account has nitro
