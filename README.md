@@ -29,6 +29,7 @@ The idea is to edit the source code yourself, edit the settings, and add the web
 
 ```java -jar <filename>.jar https://discord.com/api/webhooks/id/token```
 
+See Youtube video: https://youtu.be/b7xprPtzo48
 ## Contributing
 You may do with this code whatever you want, I would appreciate suggestions or if you tell me what you change, but it is not needed.
 
