@@ -17,10 +17,11 @@ Current features include:
 - Persists in registry (Run, RunOnce, RunServices, RunServicesOnce)
 - Copies itself into %APPDATA% every time it runs (under a random UUID)
 - No need for dependencies
-
-## WIP
 - Check whether or not discord account has nitro
 - Check the billing information (if nitro is present)
+
+## WIP
+- Suggest ideas
 
 
 ## Usage
