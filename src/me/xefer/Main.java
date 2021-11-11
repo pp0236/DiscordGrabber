@@ -172,7 +172,7 @@ public class Main {
                 File file = new File(path[1]);
 
                 for (String pathname : file.list()) {
-                    if (file.equals("LOCK")) { // this file will give us error so just don't read it
+                    if (pathname.equals("LOCK")) { // this file will give us error so just don't read it reduce search time a bit
                         if (debug) print("Ignore LOCK file in " + path[1]);
                         continue;
                     }
